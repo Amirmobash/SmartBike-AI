@@ -1,5 +1,5 @@
 """
-SmartBike - Real-Time Bicycle Safety using YOLOv8, MediaPipe Hand Tracking, and Streamlit
+SmartBike - Real-Time Bicycle Safety using YOLOv8, MediaPipe Hand Tracking, Object Speed Detection, and Streamlit
 
 Author: Amir Mobasheraghdam
 Website: https://www.nivta.de
@@ -13,6 +13,7 @@ from ultralytics import YOLO
 import time
 import mediapipe as mp
 import streamlit as st
+from collections import deque
 
 # Initialize speech engine
 engine = pyttsx3.init()
@@ -32,6 +33,10 @@ important_classes = ["person", "car", "bicycle", "motorcycle", "bus", "traffic l
 REAL_WIDTHS = {"person": 0.5, "car": 1.8, "bicycle": 0.7, "motorcycle": 0.8, "bus": 2.5}
 FOCAL_LENGTH = 600
 
+# Object tracking for speed estimation
+object_histories = {}
+HISTORY_LENGTH = 10
+
 def speak(text):
     engine.say(text)
     engine.runAndWait()
@@ -46,6 +51,8 @@ cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     st.error("Error: Camera not available.")
     exit()
+
+fps = cap.get(cv2.CAP_PROP_FPS) or 30
 
 while run:
     ret, frame = cap.read()
@@ -73,17 +80,34 @@ while run:
             continue
 
         x1, y1, x2, y2 = map(int, box.xyxy[0])
-        center_x = int((x1 + x2) / 2)
+        center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
         box_width = x2 - x1
 
         position = "Left" if center_x < width / 3 else "Right" if center_x > 2 * width / 3 else "Center"
+
+        # Update object history for speed estimation
+        if cls_id not in object_histories:
+            object_histories[cls_id] = deque(maxlen=HISTORY_LENGTH)
+        object_histories[cls_id].append((time.time(), center_x, center_y))
+
+        speed_warning = ""
+        if len(object_histories[cls_id]) >= 2:
+            t0, x0, y0 = object_histories[cls_id][0]
+            t1, x1_new, y1_new = object_histories[cls_id][-1]
+            distance_pixels = np.hypot(x1_new - x0, y1_new - y0)
+            elapsed_time = t1 - t0
+            speed = (distance_pixels / elapsed_time) if elapsed_time > 0 else 0
+
+            if speed > 100:  # Threshold pixel/sec, adjust based on actual scenario
+                speed_warning = "High speed detected! "
+                speech_text += f"Warning: {class_name} approaching fast. "
 
         if class_name in REAL_WIDTHS and box_width > 0:
             distance = round((REAL_WIDTHS[class_name] * FOCAL_LENGTH) / box_width, 2)
             danger = distance < 1.0 and position in ["Left", "Right"]
 
-            label = f"{class_name} - {distance}m"
-            color = (0, 0, 255) if danger else (0, 255, 0)
+            label = f"{class_name} - {distance}m {speed_warning}"
+            color = (0, 0, 255) if danger or speed_warning else (0, 255, 0)
 
             cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
             cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
