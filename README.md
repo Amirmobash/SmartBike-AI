@@ -1,31 +1,30 @@
-# SmartBike - AI-Powered Bicycle Safety System
+# 🚴‍♂️ SmartBike – AI-Powered Real-Time Bicycle Safety System
 
-This project is a real-time computer vision system for bicycles, capable of detecting street-level hazards using a YOLOv8 model.
+> **SmartBike** is an intelligent real-time computer vision system designed for cyclists.  
+> It detects hazards, estimates distances, recognizes traffic lights, and provides live voice alerts — all powered by **YOLOv8**, **OpenCV**, and **Streamlit**.
 
-Developed by: Amir Mobasheraghdam  
-Website: https://www.nivta.de
+---
 
-## Features
-- Real-time object detection with YOLOv8
-- Voice alerts for nearby threats
-- Red light recognition
-- Distance estimation
-- Full-screen display with camera
+### 👤 Developed by
+**Amir Mobasheraghdam**  
+🌐 [www.nivta.de](https://www.nivta.de)
 
-## Folders
-- `code/` – Python source code
-- `models/` – YOLOv8 weights
-- `data/` – Example data logs
-- `images/` – Screenshots and demo visuals
-- `videos/` – Demo videos
-- `docs/` – Technical documentation
+---
 
-## Installation
-```bash
-pip install -r requirements.txt
-```
+## 🧠 Key Features
 
-## Run
-```bash
-python code/smart_bike_main.py
-```
+| Feature | Description |
+|----------|-------------|
+| 🎯 **Real-Time Object Detection** | Uses YOLOv8 to detect cars, people, buses, and other street hazards. |
+| 🗣 **Voice Alerts (TTS)** | Speaks dynamic warnings such as “Car approaching fast!” |
+| 🚦 **Traffic Light Recognition** | Detects red lights visually and triggers a stop warning. |
+| 📏 **Distance Estimation** | Approximates object distance based on focal length and known object width. |
+| ⚡ **Speed Estimation** | Tracks object motion to estimate approach speed. |
+| 🖐 **(Optional) Hand Gesture Tracking** | Integrates MediaPipe Hand Tracking for gesture control. |
+| 🗺 **Google Maps Overlay** | Live map of your route with automatic hazard markers. |
+| 💾 **Hazard Logging** | Stores GPS and timestamp data for all detected risks. |
+
+---
+
+## 📁 Project Structure
+
